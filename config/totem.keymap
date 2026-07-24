@@ -77,8 +77,8 @@ display-name = "SYM";
 //  BTn BTp _ _ _     \  *  +  -  ´
  bindings = <
                 &kp LS(N6)  &kp LS(N7)  &kp LS(N8)  &kp LS(N9)  &kp LS(N0)      &kp LS(BSLH) &kp RA(RBKT) &kp NON_US_BSLH &kp LS(NON_US_BSLH) &kp LS(RBKT)
-                &kp LS(N1)  &kp LS(N2)  &kp LS(N3)  &kp LS(N4)  &kp LS(N5)      &kp RA(N7)  &kp RA(N8)  &kp RA(N9)  &kp RA(N0)  &kp RA(NUHS)
-    &trans      &bt BT_NXT  &bt BT_PRV  &trans      &trans      &trans          &kp BSLH    &kp LS(BSLH) &kp MINUS  &kp FSLH    &kp RA(BSLH) &trans
+                &kp LS(N1)  &kp LS(N2)  &kp LS(N3)  &kp LS(N4)  &kp LS(N5)      &kp RA(N7)  &kp RA(N8)  &kp RA(N9)  &kp RA(N0)  &kp GRAVE
+    &trans      &bt BT_NXT  &bt BT_PRV  &trans      &trans      &trans          &kp NUHS    &kp LS(BSLH) &kp MINUS  &kp FSLH    &kp RA(BSLH) &trans
                                         &trans      &trans      &trans          &trans      &trans      &trans
                         >;
         };
