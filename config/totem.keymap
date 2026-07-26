@@ -3,8 +3,9 @@
 // PROM:  toggled Hands Down Promethium (Norwegian-tuned), combo top corners
 // NAV:   hold SPC (right middle thumb) — numbers left, vim nav right, LSHFT+LGUI added
 // SYM:   hold BSP (right inner thumb) — number-derived left, punctuation right
-// FUN:   NAV+SYM held together, or &mo FUN on NAV — F-keys, media, BT, system
+// FUN:   hold SPC (NAV) + the FUN key on NAV pos 7 (right middle finger)
 // Layer order is load-bearing: PROM (toggle) below NAV/SYM (holds); FUN on top.
+// FUN is reached thumb+finger on ONE hand, leaving the left hand free for F-keys.
 // ESC = combo 27+28 · TAB = combo 18+29 · Caps Word = combo 13+16
 // Every always-live combo needs at least one RIGHT-hand key; GAME never uses
 // the right hand, so no combo can fire while gaming.
@@ -106,14 +107,6 @@
         };
     };
 
-    conditional_layers {
-        compatible = "zmk,conditional-layers";
-        fun_tri {   // hold BSP (SYM) and SPC (NAV) together → FUN
-            if-layers = <NAV SYM>;
-            then-layer = <FUN>;
-        };
-    };
-
     combos {
         compatible = "zmk,combos";
         // No `layers` list on the always-live combos: ZMK ORs the list against
@@ -160,7 +153,7 @@
         };
         combo_reset {
             timeout-ms = <50>;
-            key-positions = <26 30>;
+            key-positions = <30 31>;
             bindings = <&sys_reset>;
             layers = <FUN>;
         };
@@ -195,12 +188,12 @@
 
         nav_layer {
             display-name = "NAV";
-//  6 7 8 9 0        wordL  FUN  _  wordR  _
+//  6 7 8 9 0        wordL  _  FUN  wordR  _
 //  1 2 3 4 5          <     v   ^    >   GUI
 //  _ _ _ _ _        Home  PgDn PgUp End  Del
 //  thumb: LALT SHIFT LCTL  (shift is what makes shift+arrow work)
             bindings = <
-&kp N6      &kp N7      &kp N8      &kp N9       &kp N0         &kp LC(LEFT) &mo FUN     &none       &kp LC(RIGHT) &none
+&kp N6      &kp N7      &kp N8      &kp N9       &kp N0         &kp LC(LEFT) &none       &mo FUN     &kp LC(RIGHT) &none
 &kp N1      &kp N2      &kp N3      &kp N4       &kp N5         &kp LEFT    &kp DOWN     &kp UP      &kp RIGHT   &kp LGUI
 &none       &none       &none       &none        &none   &none  &kp HOME    &kp PG_DN    &kp PG_UP   &kp END     &kp DEL     &none
                                     &trans  &kp LSHFT  &trans   &trans      &trans       &trans
@@ -243,14 +236,15 @@
 
         fun_layer {
             display-name = "FUN";
-//  F6 F7 F8 F9 F10     PREV VOL- VOL+ NEXT PP
-//  F1 F2 F3 F4 F5      BT0  BT1  BT2  BTc  OUT
-//  _  F11 F12 _  _  _  _   MUTE  _    _    _   _     (boot = 23+24, reset = 26+30)
-//  thumbs all &trans — the NAV/SYM holds and thumb mods must stay alive
+//  F6 F7 F8 F9 F10     PREV VOL-  --  VOL+ NEXT     -- = middle column, kept clear
+//  F1 F2 F3 F4 F5      MUTE PLAY  --  BTclr OUT        because that finger holds
+//  _  F11 F12 _ _ _    BT0  BT1   --  BT2   _   _      the FUN key on NAV
+//  thumbs all &trans — NAV hold and the thumb mods must stay alive
+//  boot = 23+24, reset = 30+31 (all four are &none here)
             bindings = <
-&kp F6      &kp F7      &kp F8      &kp F9       &kp F10        &kp C_PREV  &kp C_VOL_DN &kp C_VOL_UP &kp C_NEXT &kp C_PP
-&kp F1      &kp F2      &kp F3      &kp F4       &kp F5         &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_CLR &out OUT_TOG
-&none       &kp F11     &kp F12     &none        &none   &none  &none       &kp C_MUTE   &none       &none       &none       &none
+&kp F6      &kp F7      &kp F8      &kp F9       &kp F10        &kp C_PREV  &kp C_VOL_DN &none      &kp C_VOL_UP &kp C_NEXT
+&kp F1      &kp F2      &kp F3      &kp F4       &kp F5         &kp C_MUTE  &kp C_PP     &none      &bt BT_CLR   &out OUT_TOG
+&none       &kp F11     &kp F12     &none        &none   &none  &bt BT_SEL 0 &bt BT_SEL 1 &none     &bt BT_SEL 2 &none       &none
                                     &trans   &trans  &trans     &trans      &trans       &trans
             >;
         };

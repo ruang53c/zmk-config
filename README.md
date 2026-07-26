@@ -1,6 +1,6 @@
 # TOTEM — Norwegian keymap
 
-ZMK keymap for the 38-key TOTEM, built for Norwegian (Nynorsk) and English with heavy Emacs use. QWERTY base, a togglable Hands Down Promethium layer tuned for Norwegian, held NAV/SYM layers, a conditional FUN layer, and a GAME layer with its own thumbs.
+ZMK keymap for the 38-key TOTEM, built for Norwegian (Nynorsk) and English with heavy Emacs use. QWERTY base, a togglable Hands Down Promethium layer tuned for Norwegian, held NAV/SYM layers, a momentary FUN layer, and a GAME layer with its own thumbs.
 
 Design principles: **bare modifiers on the left thumb** (Emacs chording with no hold-tap timing), **shift-only homerow mods**, **æ/ø/å as real keys** on both writing layers, and one thumb scheme shared by every typing layer.
 
@@ -27,7 +27,7 @@ Design principles: **bare modifiers on the left thumb** (Emacs chording with no 
 
 - **LCTL and LALT are bare keys** — no tap side, no timing semantics, no misfire class. Chained Emacs sequences (`C-x C-s`, `C-c C-c`, held `C-n`) are one held thumb plus finger taps.
 - **R on the resting left thumb** — stock Promethium's thumb and hand (opposite the vowels, so *er/ar/or/re* alternate). On BASE it duplicates the alpha R: a live trial of thumb-R at zero cost. Bare, because holding a letter has no use.
-- **SPC on the resting right thumb** carrying **NAV**; **BSP inner** carrying **SYM**. Tap-then-hold within 175 ms repeats the key instead of opening the layer. Holding both raises **FUN**.
+- **SPC on the resting right thumb** carrying **NAV**; **BSP inner** carrying **SYM**. Tap-then-hold within 175 ms repeats the key instead of opening the layer. These are never held together — see FUN below.
 - **RET outer with RCTL on hold** — the only hold-tap modifier, safe because RET never occurs mid-roll. It gives Ctrl cross-hand from both sides and makes `C-M-` chords pressable (RCTL + LALT is two thumbs).
 - **NAV and SYM re-add SHIFT on the left thumb** (position 33). Without it there is no Shift on those layers at all — Shift lives on the home row, which NAV/SYM overwrite — so Shift+arrow, Shift+Home/End and Shift+F-key would be impossible. With it the left thumb becomes a complete **ALT · SHIFT · CTRL** cluster while the right hand works the arrows.
 
@@ -38,7 +38,7 @@ Design principles: **bare modifiers on the left thumb** (Emacs chording with no 
 ZMK resolves each keypress from the highest-numbered **active** layer downward; `&trans` only falls *down*.
 
 ```
-6  FUN    conditional — NAV+SYM held together, or the FUN key on NAV
+6  FUN    momentary — &mo on NAV position 7 (right middle finger)
 5  GAME2  momentary (&mo from GAME)
 4  GAME   toggle — replaces everything, own thumbs
 3  SYM    hold (BSP thumb)
@@ -47,7 +47,7 @@ ZMK resolves each keypress from the highest-numbered **active** layer downward; 
 0  BASE   default, always active
 ```
 
-PROM sits at 1 so a held NAV/SYM always wins over it. GAME sits above NAV/SYM deliberately: it replaces everything and never needs them. FUN sits on top; GAME's thumbs carry no NAV/SYM holds, so FUN is unreachable while gaming. FUN's thumbs are all `&trans` so the holds and the thumb mods stay alive underneath.
+PROM sits at 1 so a held NAV/SYM always wins over it. GAME sits above NAV/SYM deliberately: it replaces everything and never needs them. FUN sits on top and hangs off NAV, so it is unreachable while gaming. FUN's thumbs are all `&trans` so the NAV hold and the thumb mods stay alive underneath.
 
 ## Layers
 
@@ -97,7 +97,7 @@ Thumbs are all `&trans`, falling through to BASE — including R, which is simpl
 
 - **SHIFT on the left thumb** (see above) makes Shift+arrow selection work; combined with RCTL on RET, `C-S-<arrow>` (extend by word) is two thumbs plus a finger.
 - **GUI on the right pinky home** — the digits live on this layer, so without it `Super+1…9` for MangoWC workspaces would need a 220 ms mod-tap hold on Ø first. Cross-hand from the digit grid.
-- **FUN key at position 6** — a one-thumb path to FUN: hold SPC, press FUN with the right index, and the left hand is free for F-keys. The two-thumb conditional still works.
+- **FUN key at position 7** — hold SPC with the right thumb, then hold the FUN key with the right **middle finger**. Thumb plus finger on one hand is a natural grip, and it leaves the whole left hand free for the F-keys.
 - Blank keys are `&none`, so no BASE or PROM letter leaks through.
 
 ### SYM (3)
@@ -129,15 +129,19 @@ Bluetooth moved to FUN. `_` is kept at the outer pinky as a one-key convenience 
 
 ![FUN layer](img/fun.svg)
 ```
-       F6   F7   F8   F9   F10       PREV VOL- VOL+ NEXT PLAY
-       F1   F2   F3   F4   F5        BT0  BT1  BT2  BTclr OUT
-  ·     ·   F11  F12   ·    ·         ·   MUTE  ·    ·    ·     ·
-               LALT SHIFT LCTL       ▼SYM ▼NAV  RET
+       F6   F7   F8   F9   F10       PREV VOL-  --  VOL+ NEXT
+       F1   F2   F3   F4   F5        MUTE PLAY  --  BTclr OUT
+  ·     ·   F11  F12   ·    ·        BT0  BT1   --  BT2   ·     ·
+               LALT SHIFT LCTL        BSP ▼NAV  RET
 ```
 
-Reached by holding both right thumbs, or by the FUN key on NAV. F-keys sit on the same left-hand grid as NAV's digits — one spatial map, three meanings: digit (NAV), shifted digit (SYM), F-key (FUN). Thumbs fall through, so `Alt+F4` and `Ctrl+F2` and `Shift+F5` all work.
+**Reached with one hand: hold SPC with the right thumb, then hold the FUN key (NAV position 7) with the right middle finger.** There is no NAV+SYM conditional layer — asking one thumb to cover two adjacent keys is a bad gesture, and it also meant a fast BSP↔SPC roll could blink FUN on by accident. Both problems are gone.
 
-`&bootloader` and `&sys_reset` are **no longer bare keys** — they are combos (23+24 and 26+30), restricted to `layers = <FUN>`, and both pairs sit on `&none` positions so a single press does nothing. That's three simultaneous conditions before anything destructive happens.
+The consequence is the `--` column: while FUN is up, the right middle finger is holding the key, so positions 7, 17 and 28 are unreachable and deliberately left `&none`. The middle finger is the right choice precisely because it blocks only its own column — the index finger also covers the inner-stretch column (5/15/26), which would have cost six positions instead of three, more than the right hand can spare.
+
+F-keys keep the same left-hand grid as NAV's digits — one spatial map, three meanings: digit (NAV), shifted digit (SYM), F-key (FUN). The left hand is entirely free, so `Alt+F4`, `Ctrl+F2` and `Shift+F5` all work with the left thumb mods falling through.
+
+`&bootloader` and `&sys_reset` are **not bare keys** — they are combos (23+24 and 30+31), restricted to `layers = <FUN>`, and all four positions are `&none` here so a single press does nothing. Both are on the outside edges, reachable by the free left hand and the right pinky respectively.
 
 ### GAME (4) and GAME2 (5)
 
@@ -171,9 +175,9 @@ Left-hand cluster with jump on the resting thumb; the right hand is entirely `&n
 | `combo_prom` | 0 + 9 | Q+P | F+B | `&tog PROM` | everywhere | 125 ms idle |
 | `combo_game` | 20 + 31 | Å+Æ | Z+Q | `&tog GAME` | everywhere | 125 ms idle |
 | `combo_boot` | 23 + 24 | — | — | `&bootloader` | **FUN only** | on `&none` keys |
-| `combo_reset` | 26 + 30 | — | — | `&sys_reset` | **FUN only** | on `&none` keys |
+| `combo_reset` | 30 + 31 | — | — | `&sys_reset` | **FUN only** | on `&none` keys |
 
-All use `timeout-ms = <50>`, and all seven position pairs are disjoint.
+All use `timeout-ms = <50>`. The five always-live pairs are mutually disjoint; `combo_reset` shares position 31 with `combo_game`, which is harmless because ZMK matches complete key sets — pressing 30+31 outside FUN fires nothing and simply types both keys.
 
 **Why ESC and TAB are on the right hand.** They used to sit on positions 0+1 and 1+2 — which in GAME are **G, Q, W**, so starting a strafe-forward could fire TAB (scoreboard) or ESC (pause menu). Every always-live combo now requires at least one right-hand key, and GAME's entire right hand is `&none` because that hand is on the mouse. **No combo can fire while gaming** — a structural guarantee rather than a timing one.
 
@@ -213,11 +217,12 @@ The pairs were chosen by checking every candidate against both layers: since the
 | PROM | `&tog` combo | top corners (0+9) | idle-guarded; numbered below NAV/SYM |
 | GAME | `&tog` combo | outer keys (20+31) | idle-guarded; numbered above NAV/SYM |
 | GAME2 | `&mo` hold | GAME inner thumb | momentary |
-| FUN | conditional **or** `&mo` | both right thumbs, or NAV position 6 | momentary; unreachable from GAME |
+| FUN | `&mo` hold | NAV position 7 (right middle finger) | momentary; unreachable from GAME |
 
 ## Known trade-offs
 
 - **NAV/SYM are held by the right thumb while their content is on the right hand** (arrows, brackets). Cross-hand would be more comfortable, but the left thumb is fully spent on bare modifiers, and this matches the hold position already in muscle memory.
+- **FUN costs the right middle column.** Three positions (7, 17, 28) are unusable while the layer is held. That is the price of one-handed activation, and it is the cheapest column available.
 - **Thumb-R is unproven for sustained use.** The BASE duplicate exists so it can be trialled for weeks — long enough for strain to appear — without committing to Promethium.
 - **J↔W is the one alpha deviation with an unmeasured net cost.** Run your own corpus through an analyzer before learning it.
 
