@@ -25,15 +25,20 @@ Positions 20 and 31 are the outer pinky keys; 32–37 are the thumbs.
 
 ## Layer stack
 
-![Layer stack](img/stack.svg)
-
 Ordering is load-bearing: ZMK resolves each keypress from the highest-numbered **active** layer downward, and `&trans` only falls *down*. PROM is a toggle, so it sits at 1 — *below* the held NAV/SYM layers — otherwise holding NAV with PROM toggled would surface Promethium letters instead of arrows. GAME sits *above* NAV/SYM deliberately: it replaces everything and never needs them.
 
 ## Layers
 
 ### BASE (0)
 
-![BASE layer](img/base.svg)
+```
+        Q    W    E    R    T          Y    U    I    O    P
+        A    S    D    F    G          H    J    K    L    Ø
+       gui  alt  ctl  sft                  sft  ctl  alt  gui
+  Å     Z    X    C    V    B          N    M    ,    .    -     Æ
+                 ESC  SPC  TAB         R   BSP  RET
+                      sym                  nav
+```
 
 QWERTY with GACS-order homerow mods. Norwegian letters are real keys: **å** on the left outer, **æ** on the right outer, **ø** on the right pinky home as a mod-tap (`&mt RGUI SEMI`) — the position Norwegian keyboards put it anyway. No æøå combos.
 
@@ -41,7 +46,14 @@ Thumbs: `ESC · SPC/sym · TAB — R · BSP/nav · RET`. The **R on the right in
 
 ### PROM (1)
 
-![PROM layer](img/prom.svg)
+```
+        F    P    D    L    X          Æ    U    O    Y    B
+        S    N    T    H    K          ,    A    E    I    C
+       gui  alt  ctl  sft                  sft  ctl  alt  gui
+  Z     V    J    G    M    W          -    .    '    Å    Ø     Q
+                 ESC  SPC  TAB         R   BSP  RET
+                      sym                  nav
+```
 
 Hands Down Promethium adapted for Norwegian; dashed keys deviate from stock:
 
@@ -54,23 +66,43 @@ R on the thumb and everything undashed is stock Promethium. Thumbs are all `&tra
 
 ### NAV (2) and SYM (3)
 
-![NAV layer](img/nav.svg)
+```
+        6    7    8    9    0         ⌃←    ·    ·   ⌃→    ·
+        1    2    3    4    5          ←    ↓    ↑    →    ·
+  ·     ·    ·    ·    ·    ·        Home PgDn PgUp End  Del     ·
+                 ESC  SPC  TAB        DEL ▼NAV  RET
+                      sym
+```
 
-![SYM layer](img/sym.svg)
+```
+        &    /    (    )    =          `    ~    <    >    ^
+        !    "    #    ¤    %          {    [    ]    }    |
+ BTc   BT+  BT-   ?    '    ·          \    *    +    -    ´     ·
+                 ESC ▼SYM  TAB         ·   BSP  RET
+                                           nav
+```
 
 Held from the middle thumbs. Blank keys are `&none` — dead, not transparent — so no QWERTY or Promethium letter is reachable from a held layer regardless of which base is toggled. NAV's right inner thumb is `DEL` (forward-delete while navigating, and it restores the dedicated DEL the thumb reshuffle removed); SYM's is `&none`. New on SYM: `?` (displaced from BASE by ø) and a plain `'`.
 
 ### GAME (4) and GAME2 (5)
 
-![GAME layer](img/game.svg)
+```
+        G    Q    W    E    R          ·    ·    ·    ·    ·
+        C    A    S    D    F          ·    ·    ·    ·    ·
+ CTL   SFT   1    2    3    4          ·    ·    ·    ·    ·     ·
+                 ALT  ▼G2  SPC         ·    ·    ·
+```
 
-![GAME2 layer](img/game2.svg)
+```
+       ESC   ·    ·    ·    ·          ·    ·    ·    ·    ·
+        ·    ·    ·    ·    ·          ·    ·    ·    ·    ·
+ TAB    ·    5    6    7    8          ·    ·    ·    ·    ·     ·
+                  ·   ▼G2   ·          ·    ·    ·
+```
 
 Left-hand gaming cluster with its own plain SPACE (so jump-hold never goes through a layer-tap). GAME2 is momentary from GAME's middle thumb.
 
 ## Combos
-
-![Combos](img/combos.svg)
 
 | Combo | Positions | On BASE | On PROM | Output | Active on | Guard |
 |---|---|---|---|---|---|---|
@@ -115,4 +147,4 @@ The position lists are simply "the other half plus all thumbs": `hml` (left-hand
 
 ## Regenerating the images
 
-All diagrams are generated: `python3 gen.py` rewrites everything in `img/`.
+All diagrams are generated: `python3 gen.py` rewrites everything in `img/`. The plain-text blocks above are the low-maintenance source of truth — edit those alongside the keymap, and rerun the generator (or don't) for the pretty versions.
