@@ -1,9 +1,13 @@
-// TOTEM — Norwegian layout
-// BASE: qwerty + homerow mods, æøå on real keys (å/æ outer, ø pinky home)
-// PROM: toggled Promethium (combo top corners), æøå on real keys, J/W swapped
-// NAV:  hold RIGHT middle thumb — numbers left, vim nav right
-// SYM:  hold LEFT middle thumb — shift-numbers left, code symbols right
-// Layer order matters: PROM (toggle) below NAV/SYM (holds), GAME above.
+// TOTEM — Norwegian layout (assumes OS set to standard Norwegian)
+// BASE:  qwerty · shift-only homerow mods · bare LALT/R/LCTL on left thumb
+// PROM:  toggled Hands Down Promethium (Norwegian-tuned), combo top corners
+// NAV:   hold SPC (right middle thumb) — numbers left, vim nav right, LSHFT+LGUI added
+// SYM:   hold BSP (right inner thumb) — number-derived left, punctuation right
+// FUN:   NAV+SYM held together, or &mo FUN on NAV — F-keys, media, BT, system
+// Layer order is load-bearing: PROM (toggle) below NAV/SYM (holds); FUN on top.
+// ESC = combo 27+28 · TAB = combo 18+29 · Caps Word = combo 13+16
+// Every always-live combo needs at least one RIGHT-hand key; GAME never uses
+// the right hand, so no combo can fire while gaming.
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
@@ -16,58 +20,123 @@
 #define SYM   3
 #define GAME  4
 #define GAME2 5
+#define FUN   6
 
-&mt {
-  quick-tap-ms = <100>;
-  require-prior-idle-ms = <100>;
-  flavor = "tap-preferred";
-  tapping-term-ms = <220>;
+&mt {   // used for RGUI on Ø (BASE) / C (PROM)
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <220>;
 };
 
-&lt {
-  flavor = "balanced";
-  tapping-term-ms = <200>;
-  quick-tap-ms = <175>;   // tap-then-hold repeats SPC/BSPC instead of layer
+&lt {   // SYM on BSP, NAV on SPC — tap-then-hold repeats the key
+    flavor = "balanced";
+    tapping-term-ms = <200>;
+    quick-tap-ms = <175>;
+};
+
+&caps_word {   // survive Norwegian letters, digits and separators inside a word
+    continue-list = <BSPC DEL N1 N2 N3 N4 N5 N6 N7 N8 N9 N0 LBKT SEMI SQT FSLH LS(FSLH)>;
 };
 
 / {
+    macros {
+        // ` ~ ^ are DEAD KEYS on the Norwegian layout: pressing them alone
+        // emits nothing until a following character. Tapping space after
+        // commits the bare character. Without this, code fences, ~/ and
+        // regex carets silently do nothing.
+        m_grave: m_grave {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings = <&kp LS(EQUAL) &kp SPACE>;
+        };
+        m_tilde: m_tilde {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings = <&kp RA(RBKT) &kp SPACE>;
+        };
+        m_caret: m_caret {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings = <&kp LS(RBKT) &kp SPACE>;
+        };
+    };
+
     behaviors {
-        // Positional homerow mods for PROM: hold only registers cross-hand
-        hml: hrm_left {
+        // Shift-only homerow mods: cross-hand holds, lenient idle so
+        // mid-flow capitals still work (ctrl/alt live on the thumbs).
+        // No hold-trigger-on-release: with ctrl/alt on thumbs there is only
+        // one homerow mod per hand, so there is nothing to stack with and
+        // deferring the decision would only delay shift.
+        hsl: hrm_shift_left {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "balanced";
             tapping-term-ms = <220>;
             quick-tap-ms = <100>;
-            require-prior-idle-ms = <125>;
+            require-prior-idle-ms = <85>;
             bindings = <&kp>, <&kp>;
             hold-trigger-key-positions = <5 6 7 8 9 15 16 17 18 19 26 27 28 29 30 31 32 33 34 35 36 37>;
-            hold-trigger-on-release;
         };
-        hmr: hrm_right {
+        hsr: hrm_shift_right {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "balanced";
             tapping-term-ms = <220>;
             quick-tap-ms = <100>;
-            require-prior-idle-ms = <125>;
+            require-prior-idle-ms = <85>;
             bindings = <&kp>, <&kp>;
             hold-trigger-key-positions = <0 1 2 3 4 10 11 12 13 14 20 21 22 23 24 25 32 33 34 35 36 37>;
-            hold-trigger-on-release;
+        };
+        // RET tap / RCTL hold: never mid-roll, so a hold-tap is safe here.
+        mtt: mod_tap_ret {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <150>;
+            require-prior-idle-ms = <100>;
+            bindings = <&kp>, <&kp>;
+        };
+    };
+
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+        fun_tri {   // hold BSP (SYM) and SPC (NAV) together → FUN
+            if-layers = <NAV SYM>;
+            then-layer = <FUN>;
         };
     };
 
     combos {
         compatible = "zmk,combos";
+        // No `layers` list on the always-live combos: ZMK ORs the list against
+        // active layers and layer 0 is always active, so any list containing
+        // BASE is a no-op. Omitted rather than misleading. GAME safety comes
+        // from every pair needing a right-hand key, which GAME never uses.
         combo_esc {
             timeout-ms = <50>;
-            key-positions = <0 1>;
+            require-prior-idle-ms = <125>;
+            key-positions = <27 28>;
             bindings = <&kp ESC>;
         };
-        combo_game {
+        combo_tab {
             timeout-ms = <50>;
-            key-positions = <20 31>;
-            bindings = <&tog GAME>;
+            require-prior-idle-ms = <125>;
+            key-positions = <18 29>;
+            bindings = <&kp TAB>;
+        };
+        combo_caps {
+            timeout-ms = <50>;
+            require-prior-idle-ms = <125>;
+            key-positions = <13 16>;
+            bindings = <&caps_word>;
         };
         combo_prom {
             timeout-ms = <50>;
@@ -75,79 +144,115 @@
             key-positions = <0 9>;
             bindings = <&tog PROM>;
         };
+        combo_game {
+            timeout-ms = <50>;
+            require-prior-idle-ms = <125>;
+            key-positions = <20 31>;
+            bindings = <&tog GAME>;
+        };
+        // FUN is not the default layer, so this list IS a real restriction.
+        // Both pairs sit on &none keys, so a single press does nothing.
+        combo_boot {
+            timeout-ms = <50>;
+            key-positions = <23 24>;
+            bindings = <&bootloader>;
+            layers = <FUN>;
+        };
+        combo_reset {
+            timeout-ms = <50>;
+            key-positions = <26 30>;
+            bindings = <&sys_reset>;
+            layers = <FUN>;
+        };
     };
 
     keymap {
         compatible = "zmk,keymap";
 
         base_layer {
-display-name = "BASE";
- bindings = <
-                &kp Q       &kp W       &kp E       &kp R       &kp T           &kp Y       &kp U       &kp I       &kp O       &kp P
-                &mt LGUI A  &mt LALT S  &mt LCTRL D &mt LSHFT F &kp G           &kp H       &mt RSHFT J &mt RCTRL K &mt RALT L  &mt RGUI SEMI
-    &kp LBKT    &kp Z       &kp X       &kp C       &kp V       &kp B           &kp N       &kp M       &kp COMMA   &kp DOT     &kp FSLH    &kp SQT
-                                        &kp ESC &lt SYM SPACE   &kp TAB         &kp R     &lt NAV BSPC  &kp RET
-                        >;
+            display-name = "BASE";
+            bindings = <
+&kp Q       &kp W       &kp E       &kp R        &kp T          &kp Y       &kp U        &kp I       &kp O       &kp P
+&kp A       &kp S       &kp D       &hsl LSHFT F &kp G          &kp H       &hsr RSHFT J &kp K       &kp L       &mt RGUI SEMI
+&kp LBKT    &kp Z       &kp X       &kp C        &kp V   &kp B  &kp N       &kp M        &kp COMMA   &kp DOT     &kp FSLH    &kp SQT
+                                    &kp LALT  &kp R  &kp LCTRL  &lt SYM BSPC  &lt NAV SPACE  &mtt RCTRL RET
+            >;
         };
 
         prom_layer {
-display-name = "PROM";
+            display-name = "PROM";
 //  f p d l x         æ u o y b
 //  s n t h k         , a e i c
 // z v j g m w        - . ' å ø q      (J/W swapped vs stock for kj)
 //  thumbs fall through to BASE
- bindings = <
-                &kp F       &kp P       &kp D       &kp L       &kp X           &kp SQT     &kp U       &kp O       &kp Y       &kp B
-                &hml LGUI S &hml LALT N &hml LCTRL T &hml LSHFT H &kp K         &kp COMMA   &hmr RSHFT A &hmr RCTRL E &hmr RALT I &hmr RGUI C
-    &kp Z       &kp V       &kp J       &kp G       &kp M       &kp W           &kp FSLH    &kp DOT     &kp BSLH    &kp LBKT    &kp SEMI    &kp Q
-                                        &trans      &trans      &trans          &trans      &trans      &trans
-                        >;
+            bindings = <
+&kp F       &kp P       &kp D       &kp L        &kp X          &kp SQT     &kp U        &kp O       &kp Y       &kp B
+&kp S       &kp N       &kp T       &hsl LSHFT H &kp K          &kp COMMA   &hsr RSHFT A &kp E       &kp I       &mt RGUI C
+&kp Z       &kp V       &kp J       &kp G        &kp M   &kp W  &kp FSLH    &kp DOT      &kp BSLH    &kp LBKT    &kp SEMI    &kp Q
+                                    &trans    &trans &trans     &trans      &trans       &trans
+            >;
         };
 
         nav_layer {
-display-name = "NAV";
-//  6 7 8 9 0        wordL  _   _  wordR  _
-//  1 2 3 4 5          <    v   ^    >    _
-//  _ _ _ _ _        Home PgDn PgUp End  Del
- bindings = <
-                &kp N6      &kp N7      &kp N8      &kp N9      &kp N0          &kp LC(LEFT) &none      &none     &kp LC(RIGHT) &none
-                &kp N1      &kp N2      &kp N3      &kp N4      &kp N5          &kp LEFT    &kp DOWN    &kp UP      &kp RIGHT   &none
-    &none       &none       &none       &none       &none       &none           &kp HOME    &kp PG_DN   &kp PG_UP   &kp END     &kp DEL     &none
-                                        &trans      &trans      &trans          &kp DEL     &trans      &trans
-                        >;
+            display-name = "NAV";
+//  6 7 8 9 0        wordL  FUN  _  wordR  _
+//  1 2 3 4 5          <     v   ^    >   GUI
+//  _ _ _ _ _        Home  PgDn PgUp End  Del
+//  thumb: LALT SHIFT LCTL  (shift is what makes shift+arrow work)
+            bindings = <
+&kp N6      &kp N7      &kp N8      &kp N9       &kp N0         &kp LC(LEFT) &mo FUN     &none       &kp LC(RIGHT) &none
+&kp N1      &kp N2      &kp N3      &kp N4       &kp N5         &kp LEFT    &kp DOWN     &kp UP      &kp RIGHT   &kp LGUI
+&none       &none       &none       &none        &none   &none  &kp HOME    &kp PG_DN    &kp PG_UP   &kp END     &kp DEL     &none
+                                    &trans  &kp LSHFT  &trans   &trans      &trans       &trans
+            >;
         };
 
         sym_layer {
-display-name = "SYM";
-//  & / ( ) =         `  ~  <  >  ^
-//  ! " # ¤ %         {  [  ]  }  |
-//  BTc BTn BTp ? ' _   \  *  +  -  ´
- bindings = <
-                &kp LS(N6)  &kp LS(N7)  &kp LS(N8)  &kp LS(N9)  &kp LS(N0)      &kp LS(EQUAL) &kp RA(RBKT) &kp NON_US_BSLH &kp LS(NON_US_BSLH) &kp LS(RBKT)
-                &kp LS(N1)  &kp LS(N2)  &kp LS(N3)  &kp LS(N4)  &kp LS(N5)      &kp RA(N7)  &kp RA(N8)  &kp RA(N9)  &kp RA(N0)  &kp GRAVE
-    &bt BT_CLR  &bt BT_NXT  &bt BT_PRV  &kp LS(MINUS) &kp BSLH  &none           &kp EQUAL    &kp LS(BSLH) &kp MINUS  &kp FSLH    &kp RA(BSLH) &none
-                                        &trans      &trans      &trans          &none       &trans      &trans
-                        >;
+            display-name = "SYM";
+//  &  /  (  )  =      `  ~  <  >  ^        left = number-derived:
+//  !  "  #  $  %      {  [  ]  }  |          row1 = shift+digit (4 → AltGr = $)
+//  _  '  @  £  ?  €   \  *  +  -  ´  _       row2 = AltGr+digit in the same column
+//  thumb: LALT SHIFT LCTL
+            bindings = <
+&kp LS(N6)  &kp LS(N7)  &kp LS(N8)  &kp LS(N9)   &kp LS(N0)     &m_grave    &m_tilde     &kp NON_US_BSLH &kp LS(NON_US_BSLH) &m_caret
+&kp LS(N1)  &kp LS(N2)  &kp LS(N3)  &kp RA(N4)   &kp LS(N5)     &kp RA(N7)  &kp RA(N8)   &kp RA(N9)  &kp RA(N0)  &kp GRAVE
+&none       &kp BSLH    &kp RA(N2)  &kp RA(N3)   &kp LS(MINUS) &kp RA(N5)  &kp EQUAL   &kp LS(BSLH) &kp MINUS   &kp FSLH    &kp RA(EQUAL) &kp LS(FSLH)
+                                    &trans  &kp LSHFT  &trans   &trans      &trans       &trans
+            >;
         };
 
         game_layer {
-display-name = "GAME";
- bindings = <
-                &kp G       &kp Q       &kp W       &kp E       &kp R           &none       &none       &none       &none       &none
-                &kp C       &kp A       &kp S       &kp D       &kp F           &none       &none       &none       &none       &none
-    &kp LCTRL   &kp LSHFT   &kp N1      &kp N2      &kp N3      &kp N4          &none       &none       &none       &none       &none       &none
-                                        &kp LALT  &mo GAME2     &kp SPACE       &none       &none       &none
-                        >;
+            display-name = "GAME";
+            bindings = <
+&kp G       &kp Q       &kp W       &kp E        &kp R          &none       &none        &none       &none       &none
+&kp C       &kp A       &kp S       &kp D        &kp F          &none       &none        &none       &none       &none
+&kp LCTRL   &kp LSHFT   &kp N1      &kp N2       &kp N3  &kp N4 &none       &none        &none       &none       &none       &none
+                                    &kp LALT  &kp SPACE  &mo GAME2  &none   &none        &none
+            >;
         };
 
         game2_layer {
-display-name = "GAME2";
- bindings = <
-                &kp ESC     &none       &none       &none       &none           &none       &none       &none       &none       &none
-                &none       &none       &none       &none       &none           &none       &none       &none       &none       &none
-    &kp TAB     &none       &kp N5      &kp N6      &kp N7      &kp N8          &none       &none       &none       &none       &none       &none
-                                        &none       &trans      &none           &none       &none       &none
-                        >;
+            display-name = "GAME2";
+            bindings = <
+&kp ESC     &none       &none       &none        &none          &none       &none        &none       &none       &none
+&none       &none       &none       &none        &none          &none       &none        &none       &none       &none
+&kp TAB     &none       &kp N5      &kp N6       &kp N7  &kp N8 &none       &none        &none       &none       &none       &none
+                                    &none    &none  &trans      &none       &none        &none
+            >;
+        };
+
+        fun_layer {
+            display-name = "FUN";
+//  F6 F7 F8 F9 F10     PREV VOL- VOL+ NEXT PP
+//  F1 F2 F3 F4 F5      BT0  BT1  BT2  BTc  OUT
+//  _  F11 F12 _  _  _  _   MUTE  _    _    _   _     (boot = 23+24, reset = 26+30)
+//  thumbs all &trans — the NAV/SYM holds and thumb mods must stay alive
+            bindings = <
+&kp F6      &kp F7      &kp F8      &kp F9       &kp F10        &kp C_PREV  &kp C_VOL_DN &kp C_VOL_UP &kp C_NEXT &kp C_PP
+&kp F1      &kp F2      &kp F3      &kp F4       &kp F5         &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_CLR &out OUT_TOG
+&none       &kp F11     &kp F12     &none        &none   &none  &none       &kp C_MUTE   &none       &none       &none       &none
+                                    &trans   &trans  &trans     &trans      &trans       &trans
+            >;
         };
     };
 };
