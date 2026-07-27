@@ -1,14 +1,17 @@
 // TOTEM — Norwegian layout (assumes OS set to standard Norwegian)
 // BASE:  qwerty · shift-only homerow mods · bare LALT/R/LCTL on left thumb
 // PROM:  toggled Hands Down Promethium (Norwegian-tuned), combo top corners
-// NAV:   hold SPC (right middle thumb) — numbers left, vim nav right, LSHFT+LGUI added
-// SYM:   hold BSP (right inner thumb) — number-derived left, punctuation right
+// NAV:   hold SPC (right INNER thumb) — numbers left, vim nav right, LSHFT+LGUI added
+// SYM:   hold BSP (right MIDDLE thumb) — number-derived left, punctuation right
 // FUN:   hold SPC (NAV) + the FUN key on NAV pos 7 (right middle finger)
 // Layer order is load-bearing: PROM (toggle) below NAV/SYM (holds); FUN on top.
 // FUN is reached thumb+finger on ONE hand, leaving the left hand free for F-keys.
 // ESC = combo 27+28 · TAB = combo 18+29 · Caps Word = combo 13+16
 // Every always-live combo needs at least one RIGHT-hand key; GAME never uses
 // the right hand, so no combo can fire while gaming.
+//
+// SPC sits on the INNER right thumb key because it is the single most frequent
+// keystroke (~17% of all input) and that is the most comfortable thumb position.
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
@@ -30,7 +33,7 @@
     tapping-term-ms = <220>;
 };
 
-&lt {   // SYM on BSP, NAV on SPC — tap-then-hold repeats the key
+&lt {   // NAV on SPC, SYM on BSP — tap-then-hold repeats the key
     flavor = "balanced";
     tapping-term-ms = <200>;
     quick-tap-ms = <175>;
@@ -44,28 +47,15 @@
     macros {
         // ` ~ ^ are DEAD KEYS on the Norwegian layout: pressing them alone
         // emits nothing until a following character. Tapping space after
-        // commits the bare character. Without this, code fences, ~/ and
-        // regex carets silently do nothing.
-        m_grave: m_grave {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
+        // commits the bare character; the space is consumed, not inserted,
+        // so ``` for a code fence still comes out as three backticks.
+        // Parameterised so one macro serves all three dead keys.
+        m_dead: m_dead {
+            compatible = "zmk,behavior-macro-one-param";
+            #binding-cells = <1>;
             wait-ms = <10>;
             tap-ms = <10>;
-            bindings = <&kp LS(EQUAL) &kp SPACE>;
-        };
-        m_tilde: m_tilde {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            wait-ms = <10>;
-            tap-ms = <10>;
-            bindings = <&kp RA(RBKT) &kp SPACE>;
-        };
-        m_caret: m_caret {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            wait-ms = <10>;
-            tap-ms = <10>;
-            bindings = <&kp LS(RBKT) &kp SPACE>;
+            bindings = <&macro_param_1to1 &kp MACRO_PLACEHOLDER>, <&kp SPACE>;
         };
     };
 
@@ -75,6 +65,9 @@
         // No hold-trigger-on-release: with ctrl/alt on thumbs there is only
         // one homerow mod per hand, so there is nothing to stack with and
         // deferring the decision would only delay shift.
+        // If capitals start dropping at speed, lower require-prior-idle-ms
+        // (85 -> 50 -> 0). Safe here: shift is the ONLY homerow mod and the
+        // positional guard already rules out same-hand false positives.
         hsl: hrm_shift_left {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -104,6 +97,18 @@
             quick-tap-ms = <150>;
             require-prior-idle-ms = <100>;
             bindings = <&kp>, <&kp>;
+        };
+        // Dead key: TAP gives the bare character, HOLD gives the raw dead key
+        // so it can still combine with a following letter (^ + o = ô in "fôr",
+        // ` + e = è). tap-preferred because the bare character is the common
+        // case and any interrupting key should resolve as a tap.
+        dk: dead_key {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <250>;
+            quick-tap-ms = <0>;
+            bindings = <&kp>, <&m_dead>;
         };
     };
 
@@ -168,7 +173,7 @@
 &kp Q       &kp W       &kp E       &kp R        &kp T          &kp Y       &kp U        &kp I       &kp O       &kp P
 &kp A       &kp S       &kp D       &hsl LSHFT F &kp G          &kp H       &hsr RSHFT J &kp K       &kp L       &mt RGUI SEMI
 &kp LBKT    &kp Z       &kp X       &kp C        &kp V   &kp B  &kp N       &kp M        &kp COMMA   &kp DOT     &kp FSLH    &kp SQT
-                                    &kp LALT  &kp R  &kp LCTRL  &lt SYM BSPC  &lt NAV SPACE  &mtt RCTRL RET
+                                    &kp LALT  &kp R  &kp LCTRL  &lt NAV SPACE &lt SYM BSPC &mtt RCTRL RET
             >;
         };
 
@@ -204,12 +209,14 @@
             display-name = "SYM";
 //  &  /  (  )  =      `  ~  <  >  ^        left = number-derived:
 //  !  "  #  $  %      {  [  ]  }  |          row1 = shift+digit (4 → AltGr = $)
-//  _  '  @  £  ?  €   \  *  +  -  ´  _       row2 = AltGr+digit in the same column
+//  ´  ¨  @  £  ?  €   \  *  +  -  _  '       row2 = AltGr+digit in the same column
 //  thumb: LALT SHIFT LCTL
+//  ´ and ¨ are RAW dead keys on the hand opposite the PROM vowels: é, ö, ü.
+//  ` ~ ^ are hold-taps: tap = bare character, hold = raw dead key (ô, è).
             bindings = <
-&kp LS(N6)  &kp LS(N7)  &kp LS(N8)  &kp LS(N9)   &kp LS(N0)     &m_grave    &m_tilde     &kp NON_US_BSLH &kp LS(NON_US_BSLH) &m_caret
+&kp LS(N6)  &kp LS(N7)  &kp LS(N8)  &kp LS(N9)   &kp LS(N0)     &dk LS(EQUAL) LS(EQUAL) &dk RA(RBKT) RA(RBKT) &kp NON_US_BSLH &kp LS(NON_US_BSLH) &dk LS(RBKT) LS(RBKT)
 &kp LS(N1)  &kp LS(N2)  &kp LS(N3)  &kp RA(N4)   &kp LS(N5)     &kp RA(N7)  &kp RA(N8)   &kp RA(N9)  &kp RA(N0)  &kp GRAVE
-&none       &kp BSLH    &kp RA(N2)  &kp RA(N3)   &kp LS(MINUS) &kp RA(N5)  &kp EQUAL   &kp LS(BSLH) &kp MINUS   &kp FSLH    &kp RA(EQUAL) &kp LS(FSLH)
+&kp RA(EQUAL) &kp RBKT  &kp RA(N2)  &kp RA(N3)   &kp LS(MINUS) &kp RA(N5)  &kp EQUAL   &kp LS(BSLH) &kp MINUS   &kp FSLH    &kp LS(FSLH) &kp BSLH
                                     &trans  &kp LSHFT  &trans   &trans      &trans       &trans
             >;
         };
